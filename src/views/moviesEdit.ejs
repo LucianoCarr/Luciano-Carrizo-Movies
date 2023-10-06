@@ -29,16 +29,24 @@
             <p>
                 <select name="genre_id" id="" required>
                     <% genres.forEach(genre => { %>
-                    <option value="<%= genre.id %>" <% if (Movie.genre.id == genre.id) { %><%= 'selected' %><% }; %>><%= genre.name %></option>
+                        <option value="<%= genre.id %>" <% if (genre.id === Movie.genre_id) { %>
+                            <%= 'selected' %>
+                            <% }; %>>
+                            <%= genre.name %></option>
                     <% }); %>
                 </select>
             </p>
     
-            <label for="genre_id">Genre ID </label>
-            <p><input type="number" name="genre_id" id="" value="<%= genre_id %>"></p>
-       
+          <!--   <label for="genre_id">Genre ID </label>
+            <p><input type="number" name="genre_id" id="" value="<%= Movie.genre_id %>"></p>
+        -->
+            <% actors.forEach(actor => { %>
+                <input name="actors" type="checkbox" <%= Movie.actors.map(actor => actor.id).includes(actor.id) && 'checked' %>
+                 id="actor<%= actor.id %>" value="<%= actor.id %>">
+                <label for="actor<%= actor.id %>"> <%= actor.first_name %> <%= actor.last_name %></label>
+                <br>
+                <% }) %>
             
-            <br>
             <p> <button class="botonAgregar" type="submit">Actualizar</button>
         
             <a  class="botonVolver" href="/movies">Listado de Películas</a></p>
