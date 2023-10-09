@@ -36,6 +36,16 @@
                 </select>
             </p>
             <br>
+            <p>
+                <p>Actores</p>
+                <% actors.forEach(actor => { %>
+                    <input name="actors" type="checkbox"
+                     id="actor<%= actor.id %>" value="<%= actor.id %>">
+                    <label for="actor<%= actor.id %>"> <%= actor.first_name %> <%= actor.last_name %></label>
+                    <br>
+                    <% }) %>
+            </p>
+
             <p> <button class="botonAgregar" type="submit">Agregar</button>
             
             <a  class="botonVolver" href="/movies">Listado de Películas</a></p>

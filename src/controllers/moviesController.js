@@ -55,19 +55,30 @@ const moviesController = {
     },
     //Aqui dispongo las rutas para trabajar con el CRUD
     add: function (req, res) {
-        db.Genre.findAll({
+        const actors = db.Actor.findAll({
+            order : [
+                ['first_name'],
+                ['last_name']
+            ]
+        })
+       const genres = db.Genre.findAll({
             order : ['name']
         })
-        .then(genres => {
+        Promise.all([actors, genres])
+        .then(([actors, genres]) => {
             return res.render('moviesAdd',{
+                actors,
                 genres
             })
         })
         .catch(error => console.log(error))
     },
+
     create: function (req,res) {
         const {title, rating, release_date, awards, length, genre_id} = req.body
         
+        const actors = [req.body.actors].flat()
+
         db.Movie.create({
             title : title.trim(),
             rating,
@@ -76,11 +87,28 @@ const moviesController = {
             length,
             genre_id
         })
-        .then(movie => {
-            console.log(movie);
-            return res.redirect('/movies')
+        .then((movie) => {
+            if(actors){
+                const actorsDB = actors.map(actor => {
+                    return {
+                        movie_id : movie.id,
+                        actor_id : actor
+                    }
+                })
+                db.Actor_Movie.bulkCreate(actorsDB,{
+                    validate : true
+                })
+                .then(() => {
+                console.log('actores agregados')
+                return res.redirect('/movies')
+            })
+            } else {
+                return res.redirect('/movies')
+            }
         })
+        .catch(error => console.log(error))
     },
+
     edit: function(req,res) {
        const genres = db.Genre.findAll({
             order : ['name']
@@ -94,7 +122,7 @@ const moviesController = {
             ['last_name', 'ASC']
         ]
        })
-
+       
        Promise.all([genres, movie, actors])
         .then(([genres, movie, actors]) => {
             console.log(moment(movie.release_date).format('YYYY-MM-DD'))
@@ -107,6 +135,7 @@ const moviesController = {
         })
         .catch(error => console.log(error))
     },
+
     update: function (req,res) {
         let {title, rating, release_date, awards, length, genre_id, actors} = req.body
 actors = typeof actors === 'string' ? [actors] : actors
@@ -158,11 +187,11 @@ db.Actor_Movie.destroy({
         })
         .catch(error => console.log(error))
     },
+
     destroy: function (req,res) {
-        const {id} = req.params
-        db.ActorMovie.destroy({
+        db.Actor_Movie.destroy({
             where : {
-                movie_id : id
+                movie_id : req.params.id
             }
         })
         .then(response => {
@@ -172,7 +201,7 @@ db.Actor_Movie.destroy({
             },
             {
                 where : {
-                    favorite_movie_id : id
+                    favorite_movie_id : req.params.id
                 }
             })
             .then(response => {
@@ -182,7 +211,9 @@ db.Actor_Movie.destroy({
                         id : req.params.id
                     }
                 })
-                return res.redirect('/movies')
+                .then(() =>{
+                    return res.redirect('/movies')
+                })
             })
         })
         .catch(error => console.log(error))
